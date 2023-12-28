@@ -1,18 +1,23 @@
-var http = require('http');
-var url = require('url');
-var fs = require('fs');
+let express = require('express')
+let formidable = require('formidable')
+let app = express()
+app.get('/', (req, res)=>{
+  res.sendFile('index.html', {root:__dirname})
+  console.log("Received connection from "+ req.hostname)
+})
+app.post('/', (req, res)=>{
+  let form = new formidable.IncomingForm()
+  form.parse(req)
+  form.on('fileBegin', (name, file)=>{
+    file.filepath = __dirname + '/uploads/' + file.originalFilename
+  })
+  form.on('file', (name, file)=>{
+    console.log("File was saved successfully to " + file.filepath)
+  })
+  res.sendFile('index.html', {root:__dirname})
+  delete form
 
-http.createServer(function (req, res) {
-  var q = url.parse(req.url, true);
-  var filename = "." + q.pathname;
-  fs.readFile(filename, function(err, data) {
-    if (err) {
-      res.writeHead(404, {'Content-Type': 'text/html'});
-      return res.end("404 Not Found");
-    }  
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.write(data);
-    return res.end();
-  });
-}).listen(8080);
-
+})
+app.listen(8080, ()=>{
+  console.log("Listening on port :8080")
+})
